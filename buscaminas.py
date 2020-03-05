@@ -57,20 +57,25 @@ ultimoClick = []
 class Cuadrado(turtle.Turtle):
     def __init__(self, valor, index):
         turtle.Turtle.__init__(self)
-        self.estado = 0 # 0 = vacio / 1-8 = ese numero / -1 = bomba
+        self.estado = 0 # 0 = vacio / 1-8 = ese numero
         self.valorOculto = valor
         self.index = index
+        self.bomba = False
+        self.descubierto = False
 
     def clickIzquierdo(self, *args):
         self.actualizarUltimoClick()
-        if self.estado == 0:
-            #celdaVacia 
-            pass
-        elif self.estado == -1:
-            #perder
-            pass
-        else:
-            self.cambiarImagen()
+        self.contarBombas()
+        if not self.descubierto:
+            if self.estado == 0:
+                #celdaVacia 
+                pass
+            elif self.bomba:
+                #perder
+                pass
+            else:
+                self.cambiarImagen()
+        self.descubierto = True
         
 
     def actualizarUltimoClick(self):
@@ -106,23 +111,36 @@ class Cuadrado(turtle.Turtle):
         elif self.estado == 8:
             self.shape(imagenOcho)
 
-        
+    # Metodo de prueba
+    def cambiarImagenABomba(self):
+        self.shape(imagenBomba)
+
     def contarBombas(self):
+        print("Esta es la celda tocada: ", self.index)
         alrededores = [ 
             [self.index[0]+1, self.index[1]-1],
-            [self.index[0]-1, self.index[1]],
-            [self.index[0]-1, self.index[1]-1],
-            [self.index[0], self.index[1]+1],
-            [self.index[0], self.index[1]-1],
+            [self.index[0]+1, self.index[1]],
             [self.index[0]+1, self.index[1]+1],
-            [self.index[0]+1, self.index[1]-1],
-            [self.index[0]+1, self.index[1]]
+            [self.index[0], self.index[1]-1],
+            [self.index[0], self.index[1]+1],
+            [self.index[0]-1, self.index[1]-1],
+            [self.index[0]-1, self.index[1]],
+            [self.index[0]-1, self.index[1]+1]
         ]
+        print("Estos son sus alrededores: ", alrededores)
+        print(self.index)
+        cantidadBombas = 0
         for celda in alrededores:
-            cantidadBombas = 0
-            if columnas[celda[0]][celda[1]].estado == -1:
-                cantidadBombas += 1
+            if dimensiones[0] > celda[0] >= 0 and dimensiones[1] > celda[1] >= 0:
+                if columnas[celda[0]][celda[1]].bomba:
+                    cantidadBombas += 1
+        print('La celda ', self.index, ' tiene ', cantidadBombas)
         self.estado = cantidadBombas
+
+    def sumarIndex(self):
+        print("Antes de sumar", self.index)
+        self.index[0] + 1
+        print("Despues de sumar", self.index)
 
 
 
@@ -148,7 +166,7 @@ def ubicarBombas():
             if bomba not in ubicacionBombas:
                 break
         ubicacionBombas.append(bomba)
-        columnas[bomba[0]][bomba[1]].estado = -1
+        columnas[bomba[0]][bomba[1]].bomba = True
     
     return ubicacionBombas
 
@@ -192,8 +210,6 @@ dimensiones = abrirMenu()
 columnas = crearTablero(dimensiones)
 ubicarBombas()
 
-
-print(ubicarBombas())
 
 while True:
     ventanaPrincipal.update()
