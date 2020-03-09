@@ -94,7 +94,6 @@ class Cuadrado(turtle.Turtle):
 
 
     def clickIzquierdo(self, *args):
-        self.definirAlrededores()
         self.actualizarUltimoClick()
         self.contarBombas()
         if not self.descubierto:
@@ -106,7 +105,7 @@ class Cuadrado(turtle.Turtle):
                 pass
             else:
                 self.cambiarImagen()
-        self.descubierto = True
+        #self.descubierto = True
         
     def clickDerecho(self, *agrs):
         if not self.bandera:
@@ -120,9 +119,11 @@ class Cuadrado(turtle.Turtle):
     def actualizarUltimoClick(self):
         global ultimoClick
         ultimoClick = self.index
-        print(ultimoClick)
+        #print(ultimoClick)
 
     def cambiarImagen(self):
+        self.descubierto = True
+        
         if self.estado == 0:
             self.shape(imagenFondo)
 
@@ -152,21 +153,21 @@ class Cuadrado(turtle.Turtle):
 
     def contarBombas(self):
         cantidadBombas = 0
+        self.definirAlrededores()
         for celda in self.alrededores:
             if dimensiones[0] > celda.index[0] >= 0 and dimensiones[1] > celda.index[1] >= 0:
-                if columnas[celda.index[0]][celda.index[1]].bomba:
+                if celda.bomba:
                     cantidadBombas += 1
-        print("Estoy a punto de hacer el if, el estado es: ", cantidadBombas) # Por algun motivo este if siempre da falso pero la puta que me pario
         if cantidadBombas > 0:
-            print('te aviso que entre al if')
             self.numero = True
         self.estado = cantidadBombas
         
 
     def clickCeldaVacia(self):
         for celda in self.alrededores:
+            print("Soy la celda: ", self.index)
             celda.cambiarImagen()
-            if not celda.numero:
+            if not celda.numero: # and not celda.descubierto:
                 celda.clickCeldaVacia()
     
     # Funcion Provicional
@@ -213,10 +214,10 @@ def redondear(numero):
     return int(numero)
 
 def calcularPosicionCuadrados(index):
-    print('El index es: ', index)
+    #print('El index es: ', index)
     x = dimensionesCuadrado*index[0]-redondear(dimensiones[0]/2)*dimensionesCuadrado#+dimensionesCuadrado
     y = dimensionesCuadrado*index[1]-redondear(dimensiones[1]/2)*dimensionesCuadrado-dimensionesCuadrado
-    print([x,y])
+    #print([x,y])
     return [x,y]
 
 def crearTablero(dimensiones):
@@ -244,6 +245,12 @@ def mostrarBombas():
             if celda.bomba:
                 celda.mostrarBombas()
 
+def mostrarNumeros():
+    for i in columnas:
+        for celda in i:
+            pass
+            #print('El estado de esta celda es: ', celda.estado)
+
 #------------------------------------------------------------------------------#
 # Listeners
 
@@ -256,6 +263,7 @@ ubicarBombas()
 ubicarNumeros()
 
 mostrarBombas()
+mostrarNumeros()
 
 while True:
     ventanaPrincipal.update()
