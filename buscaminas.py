@@ -62,14 +62,45 @@ class Cuadrado(turtle.Turtle):
         self.index = index
         self.bomba = False
         self.descubierto = False
+        self.bandera = False
+        self.numero = False
+        # Pasar estas coordenadas a objetos
+        self.alrededores = []
+
+    def definirAlrededores(self):
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.alrededores.append(columnas[self.index[0]+1][self.index[1]-1])
+        
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1] >=0:
+            self.alrededores.append(columnas[self.index[0]+1][self.index[1]])
+        
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.alrededores.append(columnas[self.index[0]+1][self.index[1]+1])
+
+        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.alrededores.append(columnas[self.index[0]][self.index[1]-1])
+
+        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.alrededores.append(columnas[self.index[0]][self.index[1]+1])
+
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.alrededores.append(columnas[self.index[0]-1][self.index[1]-1])
+
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
+            self.alrededores.append(columnas[self.index[0]-1][self.index[1]])
+
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.alrededores.append(columnas[self.index[0]-1][self.index[1]+1])
+
 
     def clickIzquierdo(self, *args):
+        self.definirAlrededores()
         self.actualizarUltimoClick()
         self.contarBombas()
         if not self.descubierto:
             if self.estado == 0:
-                #celdaVacia 
-                pass
+                self.cambiarImagen()
+                self.clickCeldaVacia()
             elif self.bomba:
                 #perder
                 pass
@@ -77,6 +108,14 @@ class Cuadrado(turtle.Turtle):
                 self.cambiarImagen()
         self.descubierto = True
         
+    def clickDerecho(self, *agrs):
+        if not self.bandera:
+            self.shape(imagenBandera)
+            self.bandera = True
+        else:
+            self.shape(imagenDelante)
+            self.bandera = False
+
 
     def actualizarUltimoClick(self):
         global ultimoClick
@@ -111,38 +150,30 @@ class Cuadrado(turtle.Turtle):
         elif self.estado == 8:
             self.shape(imagenOcho)
 
-    # Metodo de prueba
-    def cambiarImagenABomba(self):
-        self.shape(imagenBomba)
-
     def contarBombas(self):
-        print("Esta es la celda tocada: ", self.index)
-        alrededores = [ 
-            [self.index[0]+1, self.index[1]-1],
-            [self.index[0]+1, self.index[1]],
-            [self.index[0]+1, self.index[1]+1],
-            [self.index[0], self.index[1]-1],
-            [self.index[0], self.index[1]+1],
-            [self.index[0]-1, self.index[1]-1],
-            [self.index[0]-1, self.index[1]],
-            [self.index[0]-1, self.index[1]+1]
-        ]
-        print("Estos son sus alrededores: ", alrededores)
-        print(self.index)
         cantidadBombas = 0
-        for celda in alrededores:
-            if dimensiones[0] > celda[0] >= 0 and dimensiones[1] > celda[1] >= 0:
-                if columnas[celda[0]][celda[1]].bomba:
+        for celda in self.alrededores:
+            if dimensiones[0] > celda.index[0] >= 0 and dimensiones[1] > celda.index[1] >= 0:
+                if columnas[celda.index[0]][celda.index[1]].bomba:
                     cantidadBombas += 1
-        print('La celda ', self.index, ' tiene ', cantidadBombas)
+        print("Estoy a punto de hacer el if, el estado es: ", cantidadBombas) # Por algun motivo este if siempre da falso pero la puta que me pario
+        if cantidadBombas > 0:
+            print('te aviso que entre al if')
+            self.numero = True
         self.estado = cantidadBombas
+        
 
-    def sumarIndex(self):
-        print("Antes de sumar", self.index)
-        self.index[0] + 1
-        print("Despues de sumar", self.index)
-
-
+    def clickCeldaVacia(self):
+        for celda in self.alrededores:
+            celda.cambiarImagen()
+            if not celda.numero:
+                celda.clickCeldaVacia()
+    
+    # Funcion Provicional
+    def mostrarBombas(self):
+        if self.bomba:
+            self.shape(imagenBomba)
+                
 
 
     pass
@@ -196,9 +227,22 @@ def crearTablero(dimensiones):
             index = [columna, fila]
             cuadrado = crearCuadrados(calcularPosicionCuadrados([columna,fila]), 0, index)
             cuadrado.onclick(cuadrado.clickIzquierdo, 1)
+            cuadrado.onclick(cuadrado.clickDerecho, 3)
             filas.append(cuadrado)
         columnas.append(filas)
     return columnas
+
+def ubicarNumeros():
+    for columna in columnas:
+        for fila in columna:
+            fila.contarBombas()
+
+# Funcion para debuguear
+def mostrarBombas():
+    for i in columnas:
+        for celda in i:
+            if celda.bomba:
+                celda.mostrarBombas()
 
 #------------------------------------------------------------------------------#
 # Listeners
@@ -209,7 +253,9 @@ def crearTablero(dimensiones):
 dimensiones = abrirMenu()
 columnas = crearTablero(dimensiones)
 ubicarBombas()
+ubicarNumeros()
 
+mostrarBombas()
 
 while True:
     ventanaPrincipal.update()
