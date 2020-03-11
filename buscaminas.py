@@ -64,7 +64,6 @@ class Cuadrado(turtle.Turtle):
         self.descubierto = False
         self.bandera = False
         self.numero = False
-        # Pasar estas coordenadas a objetos
         self.alrededores = []
 
     def definirAlrededores(self):
@@ -95,17 +94,15 @@ class Cuadrado(turtle.Turtle):
 
     def clickIzquierdo(self, *args):
         self.actualizarUltimoClick()
-        self.contarBombas()
+
         if not self.descubierto:
-            if self.estado == 0:
+            if self.bomba:
+                print("Perdiste porque tocaste una bomba")
+            elif self.estado == 0:
                 self.cambiarImagen()
-                self.clickCeldaVacia()
-            elif self.bomba:
-                #perder
-                pass
+                self.clickCeldaVacia(0)
             else:
                 self.cambiarImagen()
-        #self.descubierto = True
         
     def clickDerecho(self, *agrs):
         if not self.bandera:
@@ -163,12 +160,13 @@ class Cuadrado(turtle.Turtle):
         self.estado = cantidadBombas
         
 
-    def clickCeldaVacia(self):
+    def clickCeldaVacia(self, valor):
         for celda in self.alrededores:
-            print("Soy la celda: ", self.index)
-            celda.cambiarImagen()
-            if not celda.numero: # and not celda.descubierto:
-                celda.clickCeldaVacia()
+            if not celda.descubierto:
+                celda.cambiarImagen()
+            if not celda.numero:
+                #sinNumero.append(celda)
+                celda.clickCeldaVacia(True)
     
     # Funcion Provicional
     def mostrarBombas(self):
