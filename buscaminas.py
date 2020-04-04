@@ -65,8 +65,18 @@ class Cuadrado(turtle.Turtle):
         self.bandera = False
         self.numero = False
         self.alrededores = []
+        self.arriba = None
+        self.abajo = None
+        self.izquierda = None
+        self.derecha = None
+        self.arribaDerecha = None
+        self.arribaIzquierda = None
+        self.abajoDerecha = None
+        self.abajoIzquierda = None
 
+    '''
     def definirAlrededores(self):
+        
         if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
             self.alrededores.append(columnas[self.index[0]+1][self.index[1]-1])
         
@@ -75,22 +85,73 @@ class Cuadrado(turtle.Turtle):
         
         if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
             self.alrededores.append(columnas[self.index[0]+1][self.index[1]+1])
-
+        
         if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
             self.alrededores.append(columnas[self.index[0]][self.index[1]-1])
-
+        
         if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
             self.alrededores.append(columnas[self.index[0]][self.index[1]+1])
-
+        
         if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
             self.alrededores.append(columnas[self.index[0]-1][self.index[1]-1])
 
         if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
             self.alrededores.append(columnas[self.index[0]-1][self.index[1]])
+        
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.alrededores.append(columnas[self.index[0]-1][self.index[1]+1])
+        '''
+    def definirAlrededores(self):
 
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.alrededores.append(columnas[self.index[0]+1][self.index[1]-1])
+        
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1] >=0:
+            self.alrededores.append(columnas[self.index[0]+1][self.index[1]])
+        
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.alrededores.append(columnas[self.index[0]+1][self.index[1]+1])
+        
+        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.alrededores.append(columnas[self.index[0]][self.index[1]-1])
+        
+        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.alrededores.append(columnas[self.index[0]][self.index[1]+1])
+        
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.alrededores.append(columnas[self.index[0]-1][self.index[1]-1])
+
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
+            self.alrededores.append(columnas[self.index[0]-1][self.index[1]])
+        
         if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
             self.alrededores.append(columnas[self.index[0]-1][self.index[1]+1])
 
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.abajoDerecha = columnas[self.index[0]+1][self.index[1]-1]
+        
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1] >=0:
+            self.derecha = columnas[self.index[0]+1][self.index[1]]
+        
+        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.arribaDerecha = columnas[self.index[0]+1][self.index[1]+1]
+        
+        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.abajo = columnas[self.index[0]][self.index[1]-1]
+        
+        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.arriba = columnas[self.index[0]][self.index[1]+1]
+        
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
+            self.abajoIzquierda = columnas[self.index[0]-1][self.index[1]-1]
+
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
+            self.izquierda = columnas[self.index[0]-1][self.index[1]]
+        
+        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
+            self.arribaIzquierda = columnas[self.index[0]-1][self.index[1]+1]
+
+        print(self.izquierda, self.derecha)
 
     def clickIzquierdo(self, *args):
         self.actualizarUltimoClick()
@@ -100,7 +161,7 @@ class Cuadrado(turtle.Turtle):
                 print("Perdiste porque tocaste una bomba")
             elif self.estado == 0:
                 self.cambiarImagen()
-                self.clickCeldaVacia(0)
+                clickCeldaVacia(self, 'izquierda')
             else:
                 self.cambiarImagen()
         
@@ -160,14 +221,9 @@ class Cuadrado(turtle.Turtle):
         self.estado = cantidadBombas
         
 
-    def clickCeldaVacia(self, valor):
-        for celda in self.alrededores:
-            if not celda.descubierto:
-                celda.cambiarImagen()
-            if not celda.numero:
-                #sinNumero.append(celda)
-                celda.clickCeldaVacia(True)
-    
+    #def clickCeldaVacia(self):
+        
+
     # Funcion Provicional
     def mostrarBombas(self):
         if self.bomba:
@@ -235,6 +291,94 @@ def ubicarNumeros():
     for columna in columnas:
         for fila in columna:
             fila.contarBombas()
+
+def llegarABorde(objeto):
+    while objeto.derecha != None:
+        objeto = objeto.derecha
+        objeto.cambiarImagen()
+        if objeto.numero:
+            break
+            
+    print(objeto.index)
+    return objeto
+
+def recorrerBorde(objeto, direccion, esPrimero):
+    global cuadradoInicial
+    if not esPrimero:
+        if objeto == cuadradoInicial:
+            return
+    print("Hola")
+    if direccion == 'izquierda':
+        print("Izquierda")
+        print(objeto.arriba.numero)
+        if objeto.arriba.numero:
+            
+            objeto.arriba.cambiarImagen()
+            return recorrerBorde(objeto.arriba, 'abajo', False)
+        elif objeto.derecha.numero:
+            
+            objeto.derecha.cambiarImagen()
+            return recorrerBorde(objeto.derecha, 'izquierda', False)
+        elif objeto.abajo.numero:
+            
+            objeto.abajo.cambiarImagen
+            return recorrerBorde(objeto.abajo, 'arriba', False)
+
+    if direccion == 'arriba':
+        print("Arriba")
+
+        if objeto.derecha.numero:
+            objeto.derecha.cambiarImagen()
+            return recorrerBorde(objeto.derecha, 'izquierda', False)
+
+        elif objeto.abajo.numero:
+            objeto.abajo.cambiarImagen()
+            return recorrerBorde(objeto.abajo, 'arriba', False)
+
+        elif objeto.izquierda.numero:
+            objeto.izquierda.cambiarImagen
+            return recorrerBorde(objeto.izquierda, 'derecha', False)
+
+    if direccion == 'derecha':
+        print('Derecha')
+        if objeto.abajo.numero:
+            objeto.abajo.cambiarImagen()
+            return recorrerBorde(objeto.abajo, 'arriba', False)
+
+        elif objeto.izquierda.numero:
+            objeto.izquierda.cambiarImagen()
+            return recorrerBorde(objeto.izquierda, 'derecha', False)
+
+        elif objeto.arriba.numero:
+            objeto.arriba.cambiarImagen
+            return recorrerBorde(objeto.arriba, 'abajo', False)
+
+    if direccion == 'abajo':
+        print("izquierda")
+        if objeto.izquierda.numero:
+            objeto.izquierda.cambiarImagen()
+            return recorrerBorde(objeto.izquierda, 'derecha', False)
+
+        elif objeto.arriba.numero:
+            objeto.arriba.cambiarImagen()
+            return recorrerBorde(objeto.arriba, 'abajo', False)
+
+        elif objeto.derecha.numero:
+            objeto.derecha.cambiarImagen
+            return recorrerBorde(objeto.derecha, 'izquierda', False)
+
+
+    pass
+
+cuadradoInicial = None
+
+def clickCeldaVacia(objeto, direccion):
+    global cuadradoInicial
+    cuadradoInicial = objeto
+
+    llegarABorde(objeto)
+    recorrerBorde(objeto, direccion, True)
+    pass
 
 # Funcion para debuguear
 def mostrarBombas():
