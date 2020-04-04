@@ -54,6 +54,20 @@ dimensionesCuadrado = 25
 ultimoClick = []
 #------------------------------------------------------------------------------#
 # Clases
+class celdaVacia():
+    def __init__(self):
+        self.__celda = []
+
+    def limpiar(self):
+        self.__celda = []
+
+    def agregar(self, valor):
+        self.__celda.append(valor)
+
+    def comprobar(self, valor):
+        return valor in self.__celda
+
+
 class Cuadrado(turtle.Turtle):
     def __init__(self, valor, index):
         turtle.Turtle.__init__(self)
@@ -161,7 +175,7 @@ class Cuadrado(turtle.Turtle):
                 print("Perdiste porque tocaste una bomba")
             elif self.estado == 0:
                 self.cambiarImagen()
-                clickCeldaVacia(self, 'izquierda')
+                self.clickCeldaVacia()
             else:
                 self.cambiarImagen()
         
@@ -221,7 +235,14 @@ class Cuadrado(turtle.Turtle):
         self.estado = cantidadBombas
         
 
-    #def clickCeldaVacia(self):
+    def clickCeldaVacia(self):
+        for celda in self.alrededores:
+            if not arrayCeldaVacia.comprobar(celda):
+                arrayCeldaVacia.agregar(celda)
+                celda.cambiarImagen()
+                if not celda.numero:
+                    celda.clickCeldaVacia()
+        
         
 
     # Funcion Provicional
@@ -292,106 +313,6 @@ def ubicarNumeros():
         for fila in columna:
             fila.contarBombas()
 
-def llegarABorde(objeto):
-    while objeto.derecha != None:
-        objeto = objeto.derecha
-        objeto.cambiarImagen()
-        if objeto.numero:
-            break
-            
-    print(objeto.index)
-    return objeto
-
-def recorrerBorde(objeto, direccion, esPrimero):
-    global cuadradoInicial
-    if not esPrimero:
-        if objeto == cuadradoInicial:
-            return
-    print("Hola")
-    if direccion == 'izquierda':
-        print("Izquierda")
-        print(objeto.arriba.numero)
-        if objeto.arriba.numero:
-            
-            objeto.arriba.cambiarImagen()
-            return recorrerBorde(objeto.arriba, 'abajo', False)
-        elif objeto.derecha.numero:
-            
-            objeto.derecha.cambiarImagen()
-            return recorrerBorde(objeto.derecha, 'izquierda', False)
-        elif objeto.abajo.numero:
-            
-            objeto.abajo.cambiarImagen
-            return recorrerBorde(objeto.abajo, 'arriba', False)
-
-    if direccion == 'arriba':
-        print("Arriba")
-
-        if objeto.derecha.numero:
-            objeto.derecha.cambiarImagen()
-            return recorrerBorde(objeto.derecha, 'izquierda', False)
-
-        elif objeto.abajo.numero:
-            objeto.abajo.cambiarImagen()
-            return recorrerBorde(objeto.abajo, 'arriba', False)
-
-        elif objeto.izquierda.numero:
-            objeto.izquierda.cambiarImagen
-            return recorrerBorde(objeto.izquierda, 'derecha', False)
-
-    if direccion == 'derecha':
-        print('Derecha')
-        if objeto.abajo.numero:
-            objeto.abajo.cambiarImagen()
-            return recorrerBorde(objeto.abajo, 'arriba', False)
-
-        elif objeto.izquierda.numero:
-            objeto.izquierda.cambiarImagen()
-            return recorrerBorde(objeto.izquierda, 'derecha', False)
-
-        elif objeto.arriba.numero:
-            objeto.arriba.cambiarImagen
-            return recorrerBorde(objeto.arriba, 'abajo', False)
-
-    if direccion == 'abajo':
-        print("izquierda")
-        if objeto.izquierda.numero:
-            objeto.izquierda.cambiarImagen()
-            return recorrerBorde(objeto.izquierda, 'derecha', False)
-
-        elif objeto.arriba.numero:
-            objeto.arriba.cambiarImagen()
-            return recorrerBorde(objeto.arriba, 'abajo', False)
-
-        elif objeto.derecha.numero:
-            objeto.derecha.cambiarImagen
-            return recorrerBorde(objeto.derecha, 'izquierda', False)
-
-
-    pass
-
-cuadradoInicial = None
-
-def clickCeldaVacia(objeto, direccion):
-    global cuadradoInicial
-    cuadradoInicial = objeto
-
-    llegarABorde(objeto)
-    recorrerBorde(objeto, direccion, True)
-    pass
-
-# Funcion para debuguear
-def mostrarBombas():
-    for i in columnas:
-        for celda in i:
-            if celda.bomba:
-                celda.mostrarBombas()
-
-def mostrarNumeros():
-    for i in columnas:
-        for celda in i:
-            pass
-            #print('El estado de esta celda es: ', celda.estado)
 
 #------------------------------------------------------------------------------#
 # Listeners
@@ -399,13 +320,12 @@ def mostrarNumeros():
 
 #------------------------------------------------------------------------------#
 # Main Loop
+arrayCeldaVacia = celdaVacia()
 dimensiones = abrirMenu()
 columnas = crearTablero(dimensiones)
 ubicarBombas()
 ubicarNumeros()
 
-mostrarBombas()
-mostrarNumeros()
 
 while True:
     ventanaPrincipal.update()
