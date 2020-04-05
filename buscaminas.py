@@ -51,9 +51,72 @@ ventanaPrincipal.addshape(imagenBandera)
 
 dimensionesCuadrado = 25
 
-ultimoClick = []
 #------------------------------------------------------------------------------#
 # Clases
+class Tablero():
+    def __init__(self):
+        self.tablero = []
+    
+    def crearCuadrados(self, posicion, valor, index):
+        cuadrado = Cuadrado(valor, index)
+        cuadrado.speed(0)
+        cuadrado.shape(imagenDelante)
+        cuadrado.penup()
+        cuadrado.goto(posicion[0], posicion[1])
+        return cuadrado
+
+    def crearTablero(self):
+        for columna in range(menu.cantidadColumnas):
+            #print('columna')
+            filas = []
+            for fila in range(menu.cantidadFilas):
+                index = [columna, fila]
+                cuadrado = self.crearCuadrados(self.calcularPosicionCuadrados([columna,fila]), 0, index)
+                cuadrado.onclick(cuadrado.clickIzquierdo, 1)
+                cuadrado.onclick(cuadrado.clickDerecho, 3)
+                filas.append(cuadrado)
+            self.tablero.append(filas)
+
+    def redondear(self, numero):
+        return int(numero)
+
+    def calcularPosicionCuadrados(self, index):
+        x = dimensionesCuadrado*index[0]-self.redondear(menu.cantidadColumnas/2)*dimensionesCuadrado
+        y = dimensionesCuadrado*index[1]-self.redondear(menu.cantidadFilas/2)*dimensionesCuadrado-dimensionesCuadrado
+        return [x,y]
+
+    def ubicarNumeros(self):
+        for columna in self.tablero:
+            for fila in columna:
+                fila.contarBombas()
+    pass
+
+
+class Menu():
+    def __init__(self):
+        self.cantidadColumnas = self.modificarColumnas()
+        self.cantidadFilas = self.modificarFilas()
+        self.__maxbombas = self.calcularMaximoBombas()
+        self.cantidadBombas = self.modificarBombas()
+
+    def modificarColumnas(self):
+        return int(turtle.numinput("Menu", "Ingrese una cantidad de columnas (1-25)", minval=1, maxval=25))
+
+    def modificarFilas(self):
+        return int(turtle.numinput("Menu", "Ingrese una cantidad de filas (1-18)", minval=1, maxval=18))
+
+    def calcularMaximoBombas(self):
+        return round(self.cantidadColumnas*self.cantidadFilas / 2)
+
+    def modificarBombas(self):
+        return int(turtle.numinput("Menu", prompt="Ingrese una cantidad de bombas (1-" + str(self.__maxbombas) + ")", minval=1, maxval=self.__maxbombas))
+
+    def prueba(self):
+        print(self.cantidadBombas)
+        print(self.cantidadColumnas)
+        print(self.cantidadFilas)
+
+
 class celdaVacia():
     def __init__(self):
         self.__celda = []
@@ -66,7 +129,62 @@ class celdaVacia():
 
     def comprobar(self, valor):
         return valor in self.__celda
+        
+    pass
 
+class ultimoClick():
+    def __init__(self):
+        self.__ultimoClick = []
+    
+    def actualizar(self, valor):
+        self.__ultimoClick = valor
+
+    pass
+
+class Banderas():
+    def __init__(self):
+        self.__ubicacion = []
+    
+    def agregar(self,valor):
+        self.__ubicacion.append(valor)
+
+    def borrar(self, valor):
+        self.__ubicacion.remove(valor)
+
+    def comprobar(self):
+        print("Prueba")
+        array = []
+        for bomba in bombas.visualizar():
+            array.append(bomba in self.__ubicacion)
+        
+        return not False in array
+
+    pass
+
+class Bombas():
+    def __init__(self):
+        self.__ubicacion = []
+
+    def agregar(self, valor):
+        self.__ubicacion.append(valor)
+
+    def comprobar(self, valor):
+        return valor in self.__ubicacion
+
+    def visualizar(self):
+        return self.__ubicacion
+
+    def ubicar(self):
+
+        for i in range(menu.cantidadBombas):
+            while True:
+                bomba = [random.randint(0, menu.cantidadColumnas-1), random.randint(0, menu.cantidadFilas-1)] # Se le agrega un '-1' para que no se vaya de rango
+                if not self.comprobar(bomba):
+                    break
+            self.agregar(bomba)
+            tablero.tablero[bomba[0]][bomba[1]].bomba = True
+
+    pass
 
 class Cuadrado(turtle.Turtle):
     def __init__(self, valor, index):
@@ -79,119 +197,62 @@ class Cuadrado(turtle.Turtle):
         self.bandera = False
         self.numero = False
         self.alrededores = []
-        self.arriba = None
-        self.abajo = None
-        self.izquierda = None
-        self.derecha = None
-        self.arribaDerecha = None
-        self.arribaIzquierda = None
-        self.abajoDerecha = None
-        self.abajoIzquierda = None
 
-    '''
+
     def definirAlrededores(self):
         
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.alrededores.append(columnas[self.index[0]+1][self.index[1]-1])
+        if menu.cantidadColumnas > self.index[0]+1 >= 0 and menu.cantidadFilas > self.index[1]-1 >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]+1][self.index[1]-1])
         
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1] >=0:
-            self.alrededores.append(columnas[self.index[0]+1][self.index[1]])
+        if menu.cantidadColumnas > self.index[0]+1 >= 0 and menu.cantidadFilas > self.index[1] >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]+1][self.index[1]])
         
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.alrededores.append(columnas[self.index[0]+1][self.index[1]+1])
+        if menu.cantidadColumnas > self.index[0]+1 >= 0 and menu.cantidadFilas > self.index[1]+1 >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]+1][self.index[1]+1])
         
-        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.alrededores.append(columnas[self.index[0]][self.index[1]-1])
+        if menu.cantidadColumnas > self.index[0] >= 0 and menu.cantidadFilas > self.index[1]-1 >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]][self.index[1]-1])
         
-        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.alrededores.append(columnas[self.index[0]][self.index[1]+1])
+        if menu.cantidadColumnas > self.index[0] >= 0 and menu.cantidadFilas > self.index[1]+1 >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]][self.index[1]+1])
         
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.alrededores.append(columnas[self.index[0]-1][self.index[1]-1])
+        if menu.cantidadColumnas > self.index[0]-1 >= 0 and menu.cantidadFilas > self.index[1]-1 >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]-1][self.index[1]-1])
 
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
-            self.alrededores.append(columnas[self.index[0]-1][self.index[1]])
+        if menu.cantidadColumnas > self.index[0]-1 >= 0 and menu.cantidadFilas > self.index[1] >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]-1][self.index[1]])
         
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.alrededores.append(columnas[self.index[0]-1][self.index[1]+1])
-        '''
-    def definirAlrededores(self):
-
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.alrededores.append(columnas[self.index[0]+1][self.index[1]-1])
-        
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1] >=0:
-            self.alrededores.append(columnas[self.index[0]+1][self.index[1]])
-        
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.alrededores.append(columnas[self.index[0]+1][self.index[1]+1])
-        
-        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.alrededores.append(columnas[self.index[0]][self.index[1]-1])
-        
-        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.alrededores.append(columnas[self.index[0]][self.index[1]+1])
-        
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.alrededores.append(columnas[self.index[0]-1][self.index[1]-1])
-
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
-            self.alrededores.append(columnas[self.index[0]-1][self.index[1]])
-        
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.alrededores.append(columnas[self.index[0]-1][self.index[1]+1])
-
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.abajoDerecha = columnas[self.index[0]+1][self.index[1]-1]
-        
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1] >=0:
-            self.derecha = columnas[self.index[0]+1][self.index[1]]
-        
-        if dimensiones[0] > self.index[0]+1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.arribaDerecha = columnas[self.index[0]+1][self.index[1]+1]
-        
-        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.abajo = columnas[self.index[0]][self.index[1]-1]
-        
-        if dimensiones[0] > self.index[0] >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.arriba = columnas[self.index[0]][self.index[1]+1]
-        
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]-1 >=0:
-            self.abajoIzquierda = columnas[self.index[0]-1][self.index[1]-1]
-
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1] >=0:
-            self.izquierda = columnas[self.index[0]-1][self.index[1]]
-        
-        if dimensiones[0] > self.index[0]-1 >= 0 and dimensiones[1] > self.index[1]+1 >=0:
-            self.arribaIzquierda = columnas[self.index[0]-1][self.index[1]+1]
-
-        print(self.izquierda, self.derecha)
+        if menu.cantidadColumnas > self.index[0]-1 >= 0 and menu.cantidadFilas > self.index[1]+1 >=0:
+            self.alrededores.append(tablero.tablero[self.index[0]-1][self.index[1]+1])
 
     def clickIzquierdo(self, *args):
-        self.actualizarUltimoClick()
 
         if not self.descubierto:
-            if self.bomba:
-                print("Perdiste porque tocaste una bomba")
-            elif self.estado == 0:
-                self.cambiarImagen()
-                self.clickCeldaVacia()
+            ultimoClick.actualizar(self.index)
+            if self.bandera:
+                self.clickDerecho()
             else:
-                self.cambiarImagen()
+                if self.bomba:
+                    print("Perdiste porque tocaste una bomba")
+                elif not self.numero:
+                    self.cambiarImagen()
+                    self.clickCeldaVacia()
+                elif self.numero:           # Esto es readundante, habria que fijarse si sacarlo afecta a la funcionalidad
+                    self.cambiarImagen()
         
     def clickDerecho(self, *agrs):
         if not self.bandera:
+            banderas.agregar(self.index)
             self.shape(imagenBandera)
             self.bandera = True
         else:
+            banderas.borrar(self.index)
             self.shape(imagenDelante)
             self.bandera = False
+        
+        if banderas.comprobar():
+            print("Ganaste")
 
-
-    def actualizarUltimoClick(self):
-        global ultimoClick
-        ultimoClick = self.index
-        #print(ultimoClick)
 
     def cambiarImagen(self):
         self.descubierto = True
@@ -227,7 +288,7 @@ class Cuadrado(turtle.Turtle):
         cantidadBombas = 0
         self.definirAlrededores()
         for celda in self.alrededores:
-            if dimensiones[0] > celda.index[0] >= 0 and dimensiones[1] > celda.index[1] >= 0:
+            if menu.cantidadColumnas > celda.index[0] >= 0 and menu.cantidadFilas > celda.index[1] >= 0:
                 if celda.bomba:
                     cantidadBombas += 1
         if cantidadBombas > 0:
@@ -255,6 +316,7 @@ class Cuadrado(turtle.Turtle):
     pass
 #------------------------------------------------------------------------------#
 # Funciones
+'''
 def abrirMenu(*args):
     cantidadColumnas = int(turtle.numinput("Menu", "Ingrese una cantidad de columnas (1-25)", minval=1, maxval=25))
     cantidadFilas = int(turtle.numinput("Menu", "Ingrese una cantidad de filas (1-18)", minval=1, maxval=18))
@@ -262,21 +324,21 @@ def abrirMenu(*args):
     cantidadBombas = int(turtle.numinput("Menu", prompt="Ingrese una cantidad de bombas (1-" + str(maxBombas) + ")", minval=1, maxval=maxBombas))
     
     return [cantidadColumnas, cantidadFilas, cantidadBombas]
-
+'''
+'''
 def ubicarBombas():
     global columnas
 
-    ubicacionBombas = []
+    
     for i in range(dimensiones[2]):
         while True:
             bomba = [random.randint(0, dimensiones[0]-1), random.randint(0, dimensiones[1]-1)] # Se le agrega un '-1' para que no se vaya de rango
-            if bomba not in ubicacionBombas:
+            if bombas.comprobar(bomba):
                 break
-        ubicacionBombas.append(bomba)
+        bombas.agregar(bomba)
         columnas[bomba[0]][bomba[1]].bomba = True
-    
-    return ubicacionBombas
-
+'''
+'''
 def crearCuadrados(posicion, valor, index):
     cuadrado = Cuadrado(valor, index)
     cuadrado.speed(0)
@@ -307,12 +369,13 @@ def crearTablero(dimensiones):
             filas.append(cuadrado)
         columnas.append(filas)
     return columnas
-
+'''
+'''
 def ubicarNumeros():
     for columna in columnas:
         for fila in columna:
             fila.contarBombas()
-
+'''
 
 #------------------------------------------------------------------------------#
 # Listeners
@@ -320,11 +383,15 @@ def ubicarNumeros():
 
 #------------------------------------------------------------------------------#
 # Main Loop
+bombas = Bombas()
+banderas = Banderas()
 arrayCeldaVacia = celdaVacia()
-dimensiones = abrirMenu()
-columnas = crearTablero(dimensiones)
-ubicarBombas()
-ubicarNumeros()
+ultimoClick = ultimoClick()
+menu = Menu()
+tablero = Tablero()
+tablero.crearTablero()
+bombas.ubicar()
+tablero.ubicarNumeros()
 
 
 while True:
