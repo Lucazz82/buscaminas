@@ -1,5 +1,6 @@
 import turtle
 import random
+import time
 #import textbox
 
 #------------------------------------------------------------------------------#
@@ -49,6 +50,12 @@ ventanaPrincipal.addshape(imagenBomba)
 imagenBandera = './imagenes/bandera.gif'
 ventanaPrincipal.addshape(imagenBandera)
 
+imagenReiniciar = './imagenes/reiniciar.gif'
+ventanaPrincipal.addshape(imagenReiniciar)
+
+imagenGanar = "./imagenes/ganaste.gif"
+ventanaPrincipal.addshape(imagenGanar)
+
 dimensionesCuadrado = 25
 
 #------------------------------------------------------------------------------#
@@ -67,7 +74,6 @@ class Tablero():
 
     def crearTablero(self):
         for columna in range(menu.cantidadColumnas):
-            #print('columna')
             filas = []
             for fila in range(menu.cantidadFilas):
                 index = [columna, fila]
@@ -89,15 +95,25 @@ class Tablero():
         for columna in self.tablero:
             for fila in columna:
                 fila.contarBombas()
+
+    def reiniciar(self):
+        for columna in self.tablero:
+            for fila in columna:
+                print(fila)
+                fila.hideturtle()
+                fila.clear()
+        self.tablero = []
+        self.crearTablero()
     pass
 
 
 class Menu():
     def __init__(self):
-        self.cantidadColumnas = self.modificarColumnas()
-        self.cantidadFilas = self.modificarFilas()
-        self.__maxbombas = self.calcularMaximoBombas()
-        self.cantidadBombas = self.modificarBombas()
+        self.cantidadColumnas = 0
+        self.cantidadFilas = 0
+        self.__maxbombas = 0
+        self.cantidadBombas = 0
+        self.reiniciar()
 
     def modificarColumnas(self):
         return int(turtle.numinput("Menu", "Ingrese una cantidad de columnas (1-25)", minval=1, maxval=25))
@@ -111,11 +127,11 @@ class Menu():
     def modificarBombas(self):
         return int(turtle.numinput("Menu", prompt="Ingrese una cantidad de bombas (1-" + str(self.__maxbombas) + ")", minval=1, maxval=self.__maxbombas))
 
-    def prueba(self):
-        print(self.cantidadBombas)
-        print(self.cantidadColumnas)
-        print(self.cantidadFilas)
-
+    def reiniciar(self):
+        self.cantidadColumnas = self.modificarColumnas()
+        self.cantidadFilas = self.modificarFilas()
+        self.__maxbombas = self.calcularMaximoBombas()
+        self.cantidadBombas = self.modificarBombas()
 
 class celdaVacia():
     def __init__(self):
@@ -138,6 +154,9 @@ class ultimoClick():
     
     def actualizar(self, valor):
         self.__ultimoClick = valor
+    
+    def reiniciar(self):
+        self.__ultimoClick = []
 
     pass
 
@@ -151,6 +170,9 @@ class Banderas():
     def borrar(self, valor):
         self.__ubicacion.remove(valor)
 
+    def cantidad(self):
+        return len(self.__ubicacion)
+
     def comprobar(self):
         print("Prueba")
         array = []
@@ -158,6 +180,9 @@ class Banderas():
             array.append(bomba in self.__ubicacion)
         
         return not False in array
+
+    def reiniciar(self):
+        self.__ubicacion = []
 
     pass
 
@@ -184,7 +209,53 @@ class Bombas():
             self.agregar(bomba)
             tablero.tablero[bomba[0]][bomba[1]].bomba = True
 
+    def reiniciar(self):
+        self.__ubicacion = []
+        
     pass
+
+class Tiempo():
+    def __init____(self):
+        self.__tiempo_utc
+        self.temporizador
+        self.reiniciar()
+    
+    def reiniciar(self):
+        self.__tiempo_utc = time.time()
+        self.temporizador = 0
+
+    def actualizar(self):
+        self.temporizador = int(time.time() - self.__tiempo_utc)
+
+    def tiempo_temporizador(self):
+        self.actualizar()
+        segundos = self.temporizador
+        if segundos < 60:
+            if segundos < 10:
+                return "00:0{}".format(segundos)
+            else:
+                return "00:{}".format(segundos)
+        elif 60 <= segundos < 3600:
+            minutos = int(segundos/60)
+            n_segundos = segundos - minutos*60
+            if minutos < 10:
+                minutos = "0{}".format(minutos)
+            if n_segundos < 10:
+                n_segundos = "0{}".format(n_segundos)
+            return "{}:{}".format(minutos, n_segundos)
+        else:
+            horas = int(segundos/3600)
+            minutos = int(segundos - horas*3600)
+            n_segundos = segundos - horas*3600 - minutos*60
+
+            if horas < 10:
+                horas = "0{}".format(horas)
+            if minutos < 10:
+                minutos = "0{}".format(minutos)
+            if n_segundos < 10:
+                n_segundos = "0{}".format(n_segundos)
+        return "{}:{}:{}".format(horas, minutos, n_segundos)
+
 
 class Cuadrado(turtle.Turtle):
     def __init__(self, valor, index):
@@ -237,21 +308,25 @@ class Cuadrado(turtle.Turtle):
                 elif not self.numero:
                     self.cambiarImagen()
                     self.clickCeldaVacia()
+                    arrayCeldaVacia.limpiar()
                 elif self.numero:           # Esto es readundante, habria que fijarse si sacarlo afecta a la funcionalidad
                     self.cambiarImagen()
         
     def clickDerecho(self, *agrs):
-        if not self.bandera:
-            banderas.agregar(self.index)
-            self.shape(imagenBandera)
-            self.bandera = True
-        else:
-            banderas.borrar(self.index)
-            self.shape(imagenDelante)
-            self.bandera = False
-        
-        if banderas.comprobar():
-            print("Ganaste")
+        if not self.descubierto:
+            if not self.bandera:
+                banderas.agregar(self.index)
+                self.shape(imagenBandera)
+                self.bandera = True
+            else:
+                banderas.borrar(self.index)
+                self.shape(imagenDelante)
+                self.bandera = False
+
+            cantidad_banderas.clear()
+            cantidad_banderas.write("Banderas: {}/{}".format(banderas.cantidad(), menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
+            if banderas.comprobar():
+                print("Ganaste")
 
 
     def cambiarImagen(self):
@@ -316,66 +391,21 @@ class Cuadrado(turtle.Turtle):
     pass
 #------------------------------------------------------------------------------#
 # Funciones
-'''
-def abrirMenu(*args):
-    cantidadColumnas = int(turtle.numinput("Menu", "Ingrese una cantidad de columnas (1-25)", minval=1, maxval=25))
-    cantidadFilas = int(turtle.numinput("Menu", "Ingrese una cantidad de filas (1-18)", minval=1, maxval=18))
-    maxBombas = round(cantidadColumnas*cantidadFilas / 2)
-    cantidadBombas = int(turtle.numinput("Menu", prompt="Ingrese una cantidad de bombas (1-" + str(maxBombas) + ")", minval=1, maxval=maxBombas))
-    
-    return [cantidadColumnas, cantidadFilas, cantidadBombas]
-'''
-'''
-def ubicarBombas():
-    global columnas
+def funciones_reiniciar(*agrs):
+        banderas.reiniciar()
+        bombas.reiniciar()
+        menu.reiniciar()
+        tablero.reiniciar()
+        tiempo.reiniciar()
+        ultimoClick.reiniciar()
+        bombas.ubicar()
+        tablero.ubicarNumeros()
+        cantidad_banderas.clear()
+        cantidad_banderas.write("Banderas: {}/{}".format(banderas.cantidad(), menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
+        cantidad_bombas.clear()
+        cantidad_bombas.write("Bombas: {}".format(menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
 
-    
-    for i in range(dimensiones[2]):
-        while True:
-            bomba = [random.randint(0, dimensiones[0]-1), random.randint(0, dimensiones[1]-1)] # Se le agrega un '-1' para que no se vaya de rango
-            if bombas.comprobar(bomba):
-                break
-        bombas.agregar(bomba)
-        columnas[bomba[0]][bomba[1]].bomba = True
-'''
-'''
-def crearCuadrados(posicion, valor, index):
-    cuadrado = Cuadrado(valor, index)
-    cuadrado.speed(0)
-    cuadrado.shape(imagenDelante)
-    cuadrado.penup()
-    cuadrado.goto(posicion[0], posicion[1])
-    return cuadrado
 
-def redondear(numero):
-    return int(numero)
-
-def calcularPosicionCuadrados(index):
-    #print('El index es: ', index)
-    x = dimensionesCuadrado*index[0]-redondear(dimensiones[0]/2)*dimensionesCuadrado#+dimensionesCuadrado
-    y = dimensionesCuadrado*index[1]-redondear(dimensiones[1]/2)*dimensionesCuadrado-dimensionesCuadrado
-    #print([x,y])
-    return [x,y]
-
-def crearTablero(dimensiones):
-    columnas = []
-    for columna in range(dimensiones[0]):
-        filas = []
-        for fila in range(dimensiones[1]):
-            index = [columna, fila]
-            cuadrado = crearCuadrados(calcularPosicionCuadrados([columna,fila]), 0, index)
-            cuadrado.onclick(cuadrado.clickIzquierdo, 1)
-            cuadrado.onclick(cuadrado.clickDerecho, 3)
-            filas.append(cuadrado)
-        columnas.append(filas)
-    return columnas
-'''
-'''
-def ubicarNumeros():
-    for columna in columnas:
-        for fila in columna:
-            fila.contarBombas()
-'''
 
 #------------------------------------------------------------------------------#
 # Listeners
@@ -386,73 +416,52 @@ def ubicarNumeros():
 bombas = Bombas()
 banderas = Banderas()
 arrayCeldaVacia = celdaVacia()
-ultimoClick = ultimoClick()
+ultimoClick = ultimoClick() # ver si es util sino sacarlo a la mierda porque no hace nada
 menu = Menu()
 tablero = Tablero()
 tablero.crearTablero()
 bombas.ubicar()
 tablero.ubicarNumeros()
 
+# Temporizador
+tiempo = Tiempo()
+tiempo.reiniciar()
+temporizador = turtle.Turtle()
+temporizador.speed(0)
+temporizador.color("white")
+temporizador.penup()
+temporizador.hideturtle()
+temporizador.goto(0, 220)
+
+# Cantidad de Bombas
+cantidad_bombas = turtle.Turtle()
+cantidad_bombas.speed(0)
+cantidad_bombas.color("white")
+cantidad_bombas.penup()
+cantidad_bombas.hideturtle()
+cantidad_bombas.goto(300, 250)
+cantidad_bombas.write("Bombas: {}".format(menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
+
+# Cantidad de Banderas
+cantidad_banderas = turtle.Turtle()
+cantidad_banderas.speed(0)
+cantidad_banderas.color("white")
+cantidad_banderas.penup()
+cantidad_banderas.hideturtle()
+cantidad_banderas.goto(300, 220)
+cantidad_banderas.write("Banderas: {}/{}".format(banderas.cantidad(), menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
+
+
+# Boton Reiniciar
+reiniciar = turtle.Turtle()
+reiniciar.speed(0)
+reiniciar.shape(imagenReiniciar)
+reiniciar.penup()
+reiniciar.onclick(funciones_reiniciar, 1)
+reiniciar.goto(-350,250)
 
 while True:
     ventanaPrincipal.update()
+    temporizador.clear()
+    temporizador.write(tiempo.tiempo_temporizador(), align="center", font=("courier", 24, "normal"))
 #------------------------------------------------------------------------------#
-
-
-
-'''
-class Cuadrado(turtle.Turtle):
-    
-    def __init__(self, prueba):
-        turtle.Turtle.__init__(self)
-        self.__posicion = prueba
-
-
-    def prueba(self, *args):
-        print("Pito")
-    
-    def cambiarColor(self, *args):
-        self.color("green")
-        print("La posicion es: ", self.__posicion)
-
-    def clickDerecho(self, *args):
-        self.shape(imagenDos)
-
-def crearCuadrados(posicion, rango):
-    cuadrado = Cuadrado(rango)
-    #cuadrado.mover(rango)
-    cuadrado.color('blue')
-    cuadrado.speed(0)
-    cuadrado.shape('square')
-    cuadrado.penup()
-    cuadrado.goto(posicion[0], posicion[1])
-    print('El tipo es: ', type(cuadrado))
-    return cuadrado
-
-cantidadColumnas = range(10)
-cuadrados = []
-
-for i in cantidadColumnas:
-    print(i)
-    cuadrados.append(crearCuadrados([i*25, 50], i))
-
-
-
-menu = turtle.Turtle()
-menu.color('yellow')
-menu.speed(0)
-menu.shapesize(stretch_wid=2, stretch_len=2)
-menu.shape(imagenUno)
-menu.penup()
-menu.goto(-25,50)
-
-def accionMenu(*args):
-    print("Hiciste click en el menu")
-
-menu.onclick(accionMenu,1)
-
-for i in cuadrados:
-    i.onclick(i.cambiarColor, 1)
-    i.onclick(i.clickDerecho, 3)
-'''
-

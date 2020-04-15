@@ -35,7 +35,21 @@ poronga = Poronga()
 ventanaPrincipal.onclick(poronga.sumarNumero, 1)
 ventanaPrincipal.onclick(poronga.imprimirNumero, 3)
 
+a = [10,5]
+b = [10,5]
 
+#array = sum(i in a for j in b)
+
+def comprobar(valor):
+    return valor in b
+
+def agregar_cero(valor):
+    if valor < 10:
+        return "0"+ str(valor)
+
+print("Hola", comprobar(10))
+valor = 4
+print(agregar_cero(valor))
 while True:
     ventanaPrincipal.update()
     
