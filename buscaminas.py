@@ -53,8 +53,14 @@ ventanaPrincipal.addshape(imagenBandera)
 imagenReiniciar = './imagenes/reiniciar.gif'
 ventanaPrincipal.addshape(imagenReiniciar)
 
-imagenGanar = "./imagenes/ganaste.gif"
+imagenGanar = "./imagenes/trophy.gif"
 ventanaPrincipal.addshape(imagenGanar)
+
+imagenPerder = "./imagenes/wasted.gif"
+ventanaPrincipal.addshape(imagenPerder)
+
+imagenBombaTocada = "./imagenes/boom.gif"
+ventanaPrincipal.addshape(imagenBombaTocada)
 
 dimensionesCuadrado = 25
 
@@ -99,7 +105,6 @@ class Tablero():
     def reiniciar(self):
         for columna in self.tablero:
             for fila in columna:
-                print(fila)
                 fila.hideturtle()
                 fila.clear()
         self.tablero = []
@@ -218,11 +223,14 @@ class Tiempo():
     def __init____(self):
         self.__tiempo_utc
         self.temporizador
+        self.parar
         self.reiniciar()
+        
     
     def reiniciar(self):
         self.__tiempo_utc = time.time()
         self.temporizador = 0
+        self.parar = False
 
     def actualizar(self):
         self.temporizador = int(time.time() - self.__tiempo_utc)
@@ -256,6 +264,44 @@ class Tiempo():
                 n_segundos = "0{}".format(n_segundos)
         return "{}:{}:{}".format(horas, minutos, n_segundos)
 
+class Trofeo():
+    def __init__(self, imagen):
+        self.objeto = 0
+        self.imagen = imagen
+
+    def visualizar(self):
+        self.bloquear()
+        self.pararReloj()
+        ganar = turtle.Turtle()
+        ganar.speed(0)
+        ganar.shape(self.imagen)
+        ganar.penup()
+        ganar.goto(0, 0)
+        self.objeto = ganar
+
+    def ocultar(self):
+        if self.objeto:
+            self.objeto.hideturtle()
+            self.objeto.clear()
+
+    def bloquear(self):
+        for columnas in tablero.tablero:
+            for fila in columnas:
+                fila.descubierto = True
+
+    def pararReloj(self):
+        tiempo.parar = True
+
+class Perder(Trofeo):
+    def perder(self, index):
+        self.visualizar()
+        for bomba in bombas.visualizar():
+            bomba = list(bomba)
+            if bomba != index:
+                tablero.tablero[bomba[0]][bomba[1]].shape(imagenBomba)
+            else:
+                tablero.tablero[bomba[0]][bomba[1]].shape(imagenBombaTocada)
+    pass
 
 class Cuadrado(turtle.Turtle):
     def __init__(self, valor, index):
@@ -304,7 +350,8 @@ class Cuadrado(turtle.Turtle):
                 self.clickDerecho()
             else:
                 if self.bomba:
-                    print("Perdiste porque tocaste una bomba")
+                    # print("Perdiste porque tocaste una bomba")
+                    perder.perder(self.index)
                 elif not self.numero:
                     self.cambiarImagen()
                     self.clickCeldaVacia()
@@ -326,7 +373,8 @@ class Cuadrado(turtle.Turtle):
             cantidad_banderas.clear()
             cantidad_banderas.write("Banderas: {}/{}".format(banderas.cantidad(), menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
             if banderas.comprobar():
-                print("Ganaste")
+                trofeo.visualizar()
+                
 
 
     def cambiarImagen(self):
@@ -378,13 +426,7 @@ class Cuadrado(turtle.Turtle):
                 celda.cambiarImagen()
                 if not celda.numero:
                     celda.clickCeldaVacia()
-        
-        
 
-    # Funcion Provicional
-    def mostrarBombas(self):
-        if self.bomba:
-            self.shape(imagenBomba)
                 
 
 
@@ -404,6 +446,8 @@ def funciones_reiniciar(*agrs):
         cantidad_banderas.write("Banderas: {}/{}".format(banderas.cantidad(), menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
         cantidad_bombas.clear()
         cantidad_bombas.write("Bombas: {}".format(menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
+        trofeo.ocultar()
+        perder.ocultar()
 
 
 
@@ -422,6 +466,9 @@ tablero = Tablero()
 tablero.crearTablero()
 bombas.ubicar()
 tablero.ubicarNumeros()
+trofeo = Trofeo(imagenGanar)
+perder = Perder(imagenPerder)
+
 
 # Temporizador
 tiempo = Tiempo()
@@ -451,7 +498,6 @@ cantidad_banderas.hideturtle()
 cantidad_banderas.goto(300, 220)
 cantidad_banderas.write("Banderas: {}/{}".format(banderas.cantidad(), menu.cantidadBombas), align="center", font=("courier", 12, "normal"))
 
-
 # Boton Reiniciar
 reiniciar = turtle.Turtle()
 reiniciar.speed(0)
@@ -460,8 +506,10 @@ reiniciar.penup()
 reiniciar.onclick(funciones_reiniciar, 1)
 reiniciar.goto(-350,250)
 
+
 while True:
     ventanaPrincipal.update()
-    temporizador.clear()
-    temporizador.write(tiempo.tiempo_temporizador(), align="center", font=("courier", 24, "normal"))
+    if not tiempo.parar:
+        temporizador.clear()
+        temporizador.write(tiempo.tiempo_temporizador(), align="center", font=("courier", 24, "normal"))
 #------------------------------------------------------------------------------#

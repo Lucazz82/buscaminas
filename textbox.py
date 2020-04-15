@@ -46,10 +46,15 @@ def comprobar(valor):
 def agregar_cero(valor):
     if valor < 10:
         return "0"+ str(valor)
+    pass
+tablero = [[0,1],[3,4]]
 
-print("Hola", comprobar(10))
-valor = 4
-print(agregar_cero(valor))
+print(tablero[0][1])
+if 0:
+    print("hola")
+else:
+    print("chau")
+
 while True:
     ventanaPrincipal.update()
     
